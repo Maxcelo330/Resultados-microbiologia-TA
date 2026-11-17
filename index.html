@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Micro TA">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#F40009">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Micro TA Diario</title>
+  <!-- Century Gothic es la letra principal; Questrial (muy parecida) entra solo si el equipo no la tiene -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Questrial&display=swap">
+  <style>
+    :root {
+      --font: "Century Gothic", CenturyGothic, "URW Gothic", Questrial, "Avenir Next", sans-serif;
+      --brand: #F40009;          /* rojo Coca-Cola */
+      --brand-dark: #C4000A;
+      --black: #161616;
+      --bg: #F3F3F3;
+      --surface: #FFFFFF;
+      --surface2: #F6F6F6;
+      --ink: #161616;
+      --muted: #616161;
+      --line: #E1E1E1;
+      --grid: #EAEAEA;
+      --axis: #C9C9C9;
+      --sel-bg: #161616;
+      --sel-ink: #FFFFFF;
+      --bad: #C3001A;
+      --bad-soft: #FDE8EA;
+      --bad-fill: #D0021B;
+      --ok: #1B7A33;
+      --ok-soft: #E6F3E9;
+      /* color por grupo (validado para daltonismo; siempre va con su nombre) */
+      --g-pul: #1baf7a;
+      --g-uv: #6250d6;
+      --g-poz: #eda100;
+      --g-otr: #8A8A8A;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .05), 0 4px 14px rgba(0, 0, 0, .05);
+      color-scheme: light;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --brand: #E2000B;
+        --brand-dark: #A80009;
+        --black: #0A0A0A;
+        --bg: #111111;
+        --surface: #1B1B1B;
+        --surface2: #232323;
+        --ink: #F0F0F0;
+        --muted: #A6A6A6;
+        --line: #2F2F2F;
+        --grid: #2A2A2A;
+        --axis: #3C3C3C;
+        --sel-bg: #F0F0F0;
+        --sel-ink: #111111;
+        --bad: #FF7A7A;
+        --bad-soft: #3A1518;
+        --bad-fill: #E0182F;
+        --ok: #62C47F;
+        --ok-soft: #16301D;
+        --g-pul: #199e70;
+        --g-uv: #9085e9;
+        --g-poz: #c98500;
+        --g-otr: #8A8A8A;
+        --shadow: none;
+        color-scheme: dark;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --brand: #E2000B;
+      --brand-dark: #A80009;
+      --black: #0A0A0A;
+      --bg: #111111;
+      --surface: #1B1B1B;
+      --surface2: #232323;
+      --ink: #F0F0F0;
+      --muted: #A6A6A6;
+      --line: #2F2F2F;
+      --grid: #2A2A2A;
+      --axis: #3C3C3C;
+      --sel-bg: #F0F0F0;
+      --sel-ink: #111111;
+      --bad: #FF7A7A;
+      --bad-soft: #3A1518;
+      --bad-fill: #E0182F;
+      --ok: #62C47F;
+      --ok-soft: #16301D;
+      --g-pul: #199e70;
+      --g-uv: #9085e9;
+      --g-poz: #c98500;
+      --g-otr: #8A8A8A;
+      --shadow: none;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box }
+    html, body { margin: 0 }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font: 14.5px/1.45 var(--font);
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: calc(70px + env(safe-area-inset-bottom));
+    }
+
+    button, select { font: inherit; color: inherit; cursor: pointer }
+    .num { font-variant-numeric: tabular-nums }
+
+    /* ---------- cabecera roja ---------- */
+    .top {
+      position: sticky; top: 0; z-index: 20; background: var(--brand); color: #fff;
+      padding: calc(10px + env(safe-area-inset-top)) 16px 10px; display: flex; align-items: center; gap: 12px;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; flex: 1; min-width: 0 }
+    .logo { width: 36px; height: 36px; border-radius: 50%; background: #fff; color: var(--brand); display: grid; place-items: center; flex: none }
+    .logo svg { width: 22px; height: 22px }
+    .brand h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: .2px; line-height: 1.1 }
+    .brand p { margin: 1px 0 0; font-size: 11.5px; letter-spacing: .6px; text-transform: uppercase; opacity: .88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+    .bell { position: relative; background: rgba(255, 255, 255, .16); border: 0; border-radius: 10px; width: 40px; height: 40px; display: grid; place-items: center; color: #fff }
+    .bell svg { width: 21px; height: 21px }
+    .bell .badge { position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; border-radius: 9px; background: #fff; color: var(--brand); font-size: 10.5px; font-weight: 700; line-height: 17px; padding: 0 4px }
+
+    /* ---------- barra negra de estado ---------- */
+    .live { position: sticky; top: calc(60px + env(safe-area-inset-top)); z-index: 19; background: var(--black); color: #DADADA; padding: 7px 16px; display: flex; align-items: center; gap: 10px; font-size: 12.5px }
+    .live .dot { width: 8px; height: 8px; border-radius: 50%; background: #8A8A8A; flex: none }
+    .live .dot.ok { background: #46D07A; animation: pulse 2s infinite }
+    .live .dot.warn { background: #F2B53A }
+    .live .dot.off { background: #8A8A8A }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(70, 208, 122, .55) } 70% { box-shadow: 0 0 0 7px rgba(70, 208, 122, 0) } 100% { box-shadow: 0 0 0 0 rgba(70, 208, 122, 0) } }
+    @media (prefers-reduced-motion: reduce) { .live .dot.ok { animation: none } }
+    .live .txt { flex: 1; min-width: 0 }
+    .live b { color: #fff; font-weight: 700 }
+    .live small { display: block; color: #9E9E9E; font-size: 11px }
+    .rbtn { background: rgba(255, 255, 255, .1); border: 0; border-radius: 8px; width: 32px; height: 32px; display: grid; place-items: center; color: #fff; flex: none }
+    .rbtn svg { width: 17px; height: 17px }
+    .rbtn.spin svg { animation: spin 1s linear infinite }
+    @keyframes spin { to { transform: rotate(360deg) } }
+    .demo-bar { background: var(--surface2); border-bottom: 1px solid var(--line); padding: 8px 16px; font-size: 12.5px; display: flex; gap: 10px; align-items: center; font-weight: 700 }
+    .demo-bar button { margin-left: auto; background: transparent; border: 1px solid var(--ink); border-radius: 7px; padding: 3px 10px; font-weight: 700 }
+
+    main { max-width: 760px; margin: 0 auto; padding: 14px 16px 8px }
+    h2 { font-size: 16px; font-weight: 700; margin: 20px 0 9px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap }
+    h2 small { font-size: 12.5px; font-weight: 400; color: var(--muted) }
+    .note { font-size: 12px; color: var(--muted); margin: 12px 2px 6px }
+    .empty { text-align: center; color: var(--muted); padding: 26px 10px }
+
+    /* ---------- piezas comunes ---------- */
+    .gdot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--gc); flex: none }
+    .gdot.ring { background: transparent; box-shadow: inset 0 0 0 2px var(--gc) }
+    .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 2px; gap: 2px; max-width: 100%; overflow-x: auto }
+    .seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 8px; font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap }
+    .seg button[aria-pressed="true"] { background: var(--sel-bg); color: var(--sel-ink); font-weight: 700 }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 4px }
+    .sel { appearance: none; -webkit-appearance: none; background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center / 14px; border: 1px solid var(--line); border-radius: 10px; padding: 7px 32px 7px 12px; font-size: 13.5px; max-width: 100%; min-width: 0; flex: 1 1 200px }
+    .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px }
+    .tiles.t3 { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+    .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 10px 9px; text-align: left; min-width: 0 }
+    .tile b { display: block; font-size: 24px; line-height: 1; font-weight: 700 }
+    .tile span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.2 }
+    .tile.bad { background: var(--bad-soft); border-color: transparent }
+    .tile.bad b, .tile.bad span { color: var(--bad) }
+    button.tile[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink) }
+    @media (max-width: 380px) { .tile b { font-size: 20px } .tile span { font-size: 10.5px } }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; margin-bottom: 12px }
+    .panel h3 { margin: 0 0 4px; font-size: 15px }
+    .panel p { margin: 4px 0 10px; color: var(--muted); font-size: 13px }
+    .btn { border: 0; background: var(--sel-bg); color: var(--sel-ink); border-radius: 10px; padding: 9px 14px; font-weight: 700; font-size: 13.5px }
+    .btn.red { background: var(--brand); color: #fff }
+    .btn.ghost { background: var(--surface2); color: var(--ink); border: 1px solid var(--line) }
+    .btn:disabled { opacity: .4; cursor: default }
+    .btns { display: flex; gap: 8px; flex-wrap: wrap }
+
+    /* ---------- pestaña Día ---------- */
+    .days { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 10px; padding: 2px 16px 2px }
+    .days::-webkit-scrollbar { display: none }
+    .day { flex: none; width: 58px; border: 1px solid var(--line); background: var(--surface); border-radius: 11px; padding: 6px 0 5px; text-align: center }
+    .day span { display: block; font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px }
+    .day b { display: block; font-size: 15px }
+    .day i { display: block; font-style: normal; font-size: 10.5px; font-weight: 700; margin-top: 1px; color: var(--ok) }
+    .day i.bad { color: var(--bad) }
+    .day[aria-pressed="true"] { background: var(--sel-bg); border-color: var(--sel-bg); color: var(--sel-ink) }
+    .day[aria-pressed="true"] span { color: inherit; opacity: .7 }
+    .day.more { display: grid; place-items: center; color: var(--muted); font-size: 11px; line-height: 1.2 }
+    .day.more svg { width: 18px; height: 18px; display: block; margin: 0 auto 2px }
+
+    .ghead { display: flex; align-items: center; gap: 8px; margin: 20px 0 8px; font-size: 15px; font-weight: 700 }
+    .ghead .gbar { width: 4px; height: 18px; border-radius: 2px; background: var(--gc) }
+    .ghead small { font-weight: 400; color: var(--muted); font-size: 12.5px }
+    .ghead small.bad { color: var(--bad); font-weight: 700 }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--gc); border-radius: 12px; padding: 11px 12px 9px; margin-bottom: 9px; box-shadow: var(--shadow) }
+    .ch { display: flex; align-items: flex-start; gap: 8px }
+    .ch .nm { flex: 1; min-width: 0 }
+    .ch h3 { margin: 0; font-size: 14.5px; line-height: 1.2 }
+    .meta { font-size: 12px; color: var(--muted); margin-top: 2px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap }
+    .meta svg { width: 13px; height: 13px }
+    .pill { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap }
+    .pill svg { width: 12px; height: 12px }
+    .p-bad { background: var(--bad-fill); color: #fff }
+    .p-ok { background: var(--ok-soft); color: var(--ok) }
+    .p-neu { background: var(--surface2); color: var(--muted); border: 1px solid var(--line); font-weight: 400 }
+    .tw { overflow-x: auto; margin-top: 7px }
+    table.res { width: 100%; border-collapse: separate; border-spacing: 0 2px; font-size: 13px }
+    .res th, .res td { padding: 3px 6px; text-align: right; white-space: nowrap }
+    .res thead th { font-size: 10.5px; font-weight: 400; color: var(--muted); letter-spacing: .4px }
+    .res tbody th { text-align: left; font-weight: 400; color: var(--ink) }
+    .res td { font-variant-numeric: tabular-nums; min-width: 44px; font-weight: 700 }
+    .res td.pend { color: var(--muted); font-weight: 400 }
+    .res td.na { color: transparent }
+    .res td.dv { background: var(--bad-soft); color: var(--bad); border-radius: 6px }
+    .res td.raro { text-decoration: underline dotted; text-underline-offset: 3px }
+    .res td.esp { color: var(--muted); font-size: 11.5px; font-weight: 400 }
+    .res tr.bad th { color: var(--bad); font-weight: 700 }
+    .obs { margin-top: 6px; font-size: 12.5px; color: var(--muted); background: var(--surface2); border-radius: 8px; padding: 6px 8px }
+
+    /* ---------- calendario ---------- */
+    .calh { display: flex; align-items: center; gap: 8px; margin: 4px 0 10px }
+    .calh h2 { margin: 0; flex: 1; justify-content: center; text-transform: capitalize }
+    .nav { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center }
+    .nav:disabled { opacity: .35; cursor: default }
+    .nav svg { width: 18px; height: 18px }
+    .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px }
+    .cal .wd { text-align: center; font-size: 10.5px; color: var(--muted); letter-spacing: .5px; padding: 2px 0 4px }
+    .cd { border: 0; background: transparent; border-radius: 9px; min-height: 58px; padding: 5px 2px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative }
+    .cd .n { font-size: 13px; font-variant-numeric: tabular-nums }
+    .cd .dots { display: flex; gap: 3px; min-height: 9px }
+    .cd .dots .gdot { width: 7px; height: 7px }
+    .cd .dvc { font-size: 10px; font-weight: 700; color: var(--bad) }
+    .cd.has { background: var(--surface2) }
+    .cd.none { color: var(--muted); opacity: .45; cursor: default }
+    .cd.out { visibility: hidden }
+    .cd.sel { box-shadow: inset 0 0 0 2px var(--ink) }
+    .cd.st-ok { background: var(--ok-soft) }
+    .cd.st-ok .ic { color: var(--ok) }
+    .cd.st-bad { background: var(--bad-soft) }
+    .cd.st-bad .ic { color: var(--bad) }
+    .cd .ic { font-size: 11px; font-weight: 700; line-height: 1; color: var(--muted) }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin: 10px 2px 0 }
+    .legend span { display: inline-flex; align-items: center; gap: 6px }
+    .grows { margin-top: 4px }
+    .grow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13.5px }
+    .grow:first-child { border-top: 0 }
+    .grow .nm { flex: 1 }
+    .grow .v { color: var(--muted); font-size: 12.5px; text-align: right }
+    .grow .v b { color: var(--ink); font-size: 14px }
+
+    /* ---------- gráficos ---------- */
+    .chart { position: relative; margin-top: 4px }
+    .chart svg { display: block; width: 100%; overflow: visible }
+    .chart text { font-family: var(--font); fill: var(--muted); font-size: 10.5px }
+    .chart .tick { font-variant-numeric: tabular-nums }
+    .chart .lbl { fill: var(--ink); font-size: 11px; font-weight: 700 }
+    .tt { position: absolute; pointer-events: none; background: var(--black); color: #fff; border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.35; white-space: nowrap; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); transform: translate(-50%, calc(-100% - 12px)); z-index: 5 }
+    .tt b { font-size: 13px }
+    .tt .bad { color: #FF9A9A; font-weight: 700 }
+    .tt .ok { color: #8BE0A4 }
+    .ctitle { font-size: 14px; font-weight: 700; margin: 0 }
+    .csub { font-size: 12px; color: var(--muted); margin: 1px 0 4px }
+    .clegend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; margin: 6px 0 2px }
+    .clegend span { display: inline-flex; align-items: center; gap: 6px }
+    .clegend .sw { width: 14px; height: 3px; border-radius: 2px; background: var(--gc) }
+    .clegend .ref { width: 14px; height: 0; border-top: 2px dashed var(--muted) }
+    .clegend .mk { width: 9px; height: 9px; border-radius: 50%; background: var(--bad-fill) }
+    .minis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+    .mini { background: var(--surface2); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; color: var(--muted) }
+    .mini b { display: block; color: var(--ink); font-size: 13.5px }
+    .mini.bad b { color: var(--bad) }
+
+    /* ---------- desvíos ---------- */
+    .rk { display: grid; grid-template-columns: minmax(92px, 36%) 1fr; gap: 10px; align-items: center; padding: 5px 0 }
+    .rk-n { font-size: 12.5px; line-height: 1.15; display: flex; gap: 7px; align-items: center }
+    .rk-b { display: flex; align-items: center; gap: 6px }
+    .rk-b i { display: block; height: 10px; border-radius: 0 4px 4px 0; background: var(--gc); min-width: 3px }
+    .rk-b span { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums }
+    .dvi { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--gc); border-radius: 12px; padding: 9px 12px; margin-bottom: 7px }
+    .dvi .l { flex: 1; min-width: 0 }
+    .dvi b { display: block; font-size: 13.5px }
+    .dvi small { color: var(--muted); font-size: 12px }
+    .dvi .v { text-align: right; flex: none }
+    .dvi .v strong { display: block; color: var(--bad); font-size: 16px; font-variant-numeric: tabular-nums }
+    .dvi .v small { font-size: 11px }
+
+    /* ---------- avisos ---------- */
+    .tg { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 13.5px }
+    .tg:first-of-type { border-top: 0 }
+    .tg span { flex: 1 }
+    .tg small { display: block; color: var(--muted); font-size: 11.5px }
+    .tg input { width: 19px; height: 19px; accent-color: var(--brand) }
+    .ev { display: flex; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line) }
+    .ev:first-child { border-top: 0 }
+    .ev .ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; flex: none; background: var(--surface2); color: var(--muted) }
+    .ev .ic svg { width: 15px; height: 15px }
+    .ev.desvio .ic { background: var(--bad-fill); color: #fff }
+    .ev b { display: block; font-size: 13.5px; line-height: 1.25 }
+    .ev.desvio b { color: var(--bad) }
+    .ev p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted) }
+    .ev time { font-size: 11px; color: var(--muted) }
+
+    /* ---------- navegación inferior ---------- */
+    .tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom) }
+    .tabs button { flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 0 7px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10.5px; color: var(--muted); position: relative }
+    .tabs svg { width: 21px; height: 21px }
+    .tabs button[aria-current="page"] { color: var(--brand); font-weight: 700 }
+    .tabs button[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--brand) }
+    .tabs .cnt { position: absolute; top: 3px; left: 55%; min-width: 16px; height: 16px; border-radius: 8px; background: var(--brand); color: #fff; font-size: 10px; line-height: 16px; padding: 0 4px; font-weight: 700 }
+
+    #toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 30; width: min(440px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 8px; pointer-events: none }
+    .toast { pointer-events: auto; background: var(--black); color: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .25); font-size: 13px; animation: up .25s ease-out; border-left: 4px solid #8A8A8A }
+    .toast b { display: block; font-size: 13.5px }
+    .toast.desvio { border-left-color: var(--brand) }
+    @keyframes up { from { transform: translateY(10px); opacity: 0 } }
+
+    /* cabecera + barra de estado fijas como un solo bloque (el título puede ocupar 2 líneas) */
+    .hdr { position: sticky; top: 0; z-index: 20 }
+    .hdr .top, .hdr .live { position: static }
+
+    /* ---------- aviso "pendiente" (agenda) ---------- */
+    :root { --warn: #A35F00; --warn-soft: #FFF1D6 }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --warn: #F0B44C; --warn-soft: #33270F } }
+    :root[data-theme="dark"] { --warn: #F0B44C; --warn-soft: #33270F }
+
+    /* ---------- tarjetas plegadas (conformes / sin resultados) ---------- */
+    .card.min { padding: 9px 12px; box-shadow: none }
+    .card.min h3 { font-size: 13.5px; font-weight: 400 }
+    .card.min .meta { margin-top: 0 }
+    .ch[role="button"] { cursor: pointer }
+    .chev { width: 16px; height: 16px; color: var(--muted); flex: none; align-self: center; transition: transform .15s }
+    .card:not(.min) .chev { transform: rotate(180deg) }
+    .sinres { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: transparent; border: 1px dashed var(--line); border-radius: 11px; padding: 8px 10px; margin-bottom: 7px; font-size: 12px; color: var(--muted) }
+    .sinres > svg:first-child { width: 14px; height: 14px; flex: none }
+    .sinres span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+    .sinres[aria-expanded="true"] .chev { transform: rotate(180deg) }
+
+    /* ---------- agenda de lecturas ---------- */
+    .agsec { font-size: 11px; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); margin: 12px 0 4px }
+    .agsec:first-child { margin-top: 2px }
+    .ag { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line) }
+    .agsec + .ag { border-top: 0 }
+    .ag-d { width: 52px; flex: none; text-align: center; border-radius: 9px; background: var(--surface2); padding: 4px 0 }
+    .ag-d b { display: block; font-size: 12px }
+    .ag-d span { display: block; font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums }
+    .ag.hoy .ag-d { background: var(--sel-bg); color: var(--sel-ink) }
+    .ag.hoy .ag-d span { color: inherit; opacity: .7 }
+    .ag-t { flex: 1; min-width: 0; font-size: 13px; line-height: 1.3 }
+    .ag-t small { display: block; color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+    .ag-s { flex: none; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums }
+    .ag-s svg { width: 12px; height: 12px }
+    .ag-s.ok { background: var(--ok-soft); color: var(--ok) }
+    .ag-s.warn { background: var(--warn-soft); color: var(--warn) }
+    .ag-s.neu { background: var(--surface2); color: var(--muted); font-weight: 400 }
+    .ag-vacio { font-size: 12.5px; color: var(--muted); padding: 6px 0 }
+    .agline { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; border-radius: 10px; padding: 8px 10px; margin-bottom: 10px; font-size: 12.5px; background: var(--surface2); color: var(--muted) }
+    .agline span { flex: 1; min-width: 0 }
+    .agline svg { width: 15px; height: 15px; flex: none }
+    .agline.warn { background: var(--warn-soft); color: var(--warn); font-weight: 700 }
+    .agline.ok { background: var(--ok-soft); color: var(--ok) }
+    .hrow { display: flex; align-items: center; gap: 10px; padding: 8px 0 2px; font-size: 13.5px }
+    .hrow span { flex: 1 }
+    .hrow small { display: block; color: var(--muted); font-size: 11.5px }
+    .hrow input[type="time"] { font: inherit; color: var(--ink); background: var(--surface2); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px }
+    .ev.recordatorio .ic { background: var(--warn-soft); color: var(--warn) }
+    .toast.recordatorio { border-left-color: #F0B44C }
+
+    /* ---------- crédito ---------- */
+    .credit { text-align: center; font-size: 10.5px; letter-spacing: .4px; color: var(--muted); opacity: .6; padding: 18px 16px 6px }
+
+    /* ---------- celular ---------- */
+    @media (max-width: 480px) {
+      body { font-size: 14px }
+      .top { padding: calc(8px + env(safe-area-inset-top)) 14px 8px; gap: 10px }
+      .logo { width: 32px; height: 32px }
+      .logo svg { width: 19px; height: 19px }
+      .brand h1 { font-size: 15px; line-height: 1.15 }
+      .brand p { font-size: 9.5px; letter-spacing: .5px }
+      .bell { width: 36px; height: 36px }
+      .live { padding: 6px 14px; font-size: 11.5px }
+      .live small { display: none }
+      .live .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+      .rbtn { width: 28px; height: 28px }
+      main { padding: 10px 14px 4px }
+      h2 { font-size: 15px; margin: 16px 0 8px }
+      .days { margin: 0 -14px 8px; padding: 2px 14px }
+      .day { width: 50px; border-radius: 10px; padding: 5px 0 4px }
+      .day b { font-size: 13.5px }
+      .day span, .day i { font-size: 9.5px }
+      .tiles { gap: 6px }
+      .tile { padding: 8px 8px 7px; border-radius: 10px }
+      .tile b { font-size: 19px }
+      .tile span { font-size: 10px; margin-top: 3px }
+      .row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 10px -14px 2px; padding: 0 14px }
+      .row::-webkit-scrollbar { display: none }
+      .row .seg { flex: none; overflow: visible }
+      .row .sel { flex: 1 0 190px }
+      .row.wrap { flex-wrap: wrap; overflow: visible; margin: 10px 0 2px; padding: 0 }
+      .row.wrap .sel { flex: 1 1 100% }
+      .seg button { padding: 5px 9px; font-size: 12px }
+      .ghead { margin: 16px 0 7px; font-size: 14px }
+      .card { padding: 10px 10px 8px; border-radius: 11px; margin-bottom: 7px }
+      .card.min { padding: 8px 10px }
+      .ch h3 { font-size: 13.5px }
+      .meta { font-size: 11px }
+      .meta .nro { display: none }
+      .pill { font-size: 10.5px; padding: 3px 7px }
+      table.res { font-size: 12.5px }
+      .res th, .res td { padding: 3px 4px }
+      .res td { min-width: 38px }
+      .res thead th { font-size: 9.5px }
+      .res td.esp { font-size: 10.5px }
+      .note { font-size: 11px }
+      .cal { padding: 6px; gap: 2px; border-radius: 12px }
+      .cd { min-height: 46px; padding: 4px 0 3px; gap: 3px; border-radius: 8px }
+      .cd .n { font-size: 12px }
+      .cd .dots .gdot { width: 6px; height: 6px }
+      .cd .dots { gap: 2px }
+      .legend { font-size: 11px; gap: 4px 10px }
+      .panel { padding: 11px 12px; border-radius: 12px }
+      .grow { font-size: 13px }
+      .minis { grid-template-columns: 1fr }
+      .dvi { padding: 8px 10px }
+      .ag-d { width: 46px }
+      .tabs button { font-size: 9.5px; padding: 7px 0 6px }
+      .tabs svg { width: 20px; height: 20px }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hdr">
+  <header class="top">
+    <div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5C9 7 6 10.2 6 14a6 6 0 0 0 12 0c0-3.8-3-7-6-11.5Z" fill="currentColor"/><circle cx="10" cy="15" r="1.4" fill="#fff"/><circle cx="13.6" cy="12.6" r="1" fill="#fff"/></svg></span>
+      <div>
+        <h1>Analisis microbiologico · TA Diario</h1>
+        <p>EMBOL · Planta La Paz · Tratamiento de agua</p>
+      </div>
+    </div>
+    <button class="bell" id="bell" aria-label="Ver avisos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+      </svg><span class="badge" id="bellN" hidden></span></button>
+  </header>
+  <div class="live" id="live"></div>
+  </div>
+  <div id="demoBar"></div>
+  <main id="app"></main>
+  <footer class="credit">Desarrollado por Marcelo Herrera</footer>
+  <nav class="tabs" id="tabs"></nav>
+  <div id="toasts" aria-live="polite"></div>
+
+  <script>
+    // =====================================================================
+    //  Micro · TA Diario — monitoreo de la tabla TA_DIARIO33 del Excel
+    //  "3. Microbiología Rutinario NF 2026.xlsx" (Teams / SharePoint).
+    //  Power Automate deja en el repositorio de GitHub:
+    //    data.json      → últimos ~14 días, la app lo revisa cada minuto (avisos)
+    //    historico.json → todo el año, para Calendario y Tendencias (se lee al abrir)
+    //  Formato de ambos: { "at": "<hora de la corrida>", "filas": [ { "<encabezado Excel>": valor } ] }
+    //  (también acepta "value", que es lo que devuelve "Enumerar filas de una tabla")
+    // =====================================================================
+    const DATA_URL = "./data.json", HIST_URL = "./historico.json";
+    const POLL_MS = 60000;   // revisión de data.json mientras la app está abierta
+    const STALE_H = 3;       // sin actualización de Automate en 3 h → barra en ámbar
+
+    const COL = { id: "N°", fecha: "FECHA (DD/MM/AAAA)", analista: "ANALISTA", turno: "TURNO", muestra: "MUESTRA", obs: "Observaciones" };
+    // Regla del Excel: cumple si lectura <= Esp; desvío si lectura > Esp
+    const DET = [
+      { k: "r36", n: "RTMe 36 °C", u: "UFC/ml", esp: "Esp RTMe 36 UFC/ml", lect: [[24, ["RTMe 36°C 24Hr"]], [48, ["RTMe 36°C 48Hr"]]] },
+      { k: "r22", n: "RTMe 22 °C", u: "UFC/ml", esp: "Esp RTMe 22 UFC/ml", lect: [[24, ["RTMe 22°C 24Hr"]], [48, ["RTMe 22°C 48Hr"]], [72, ["RTMe 22°C 72Hr"]]] },
+      { k: "col", n: "Coliformes", u: "UFC/100ml", esp: "Esp Colif UFC/100ml", lect: [[24, ["Colif 24Hr 1", "Colif 24Hr 2", "Colif 24Hr 3"]], [48, ["Colif 48Hr 1", "Colif 48Hr 2", "Colif 48Hr 3"]]] },
+      { k: "ent", n: "Enterococos", u: "UFC/100ml", esp: "Esp E. UFC/100ml", lect: [[24, ["Enterococos 24Hr"]], [48, ["Enterococos 48Hr"]]] },
+      { k: "pse", n: "Pseudomonas", u: "UFC/100ml", esp: "Esp Psdmn UFC/100ml", lect: [[24, ["Pseudomonas 24Hr 1", "Pseudomonas 24Hr 2"]], [48, ["Pseudomonas 48Hr 1", "Pseudomonas 48Hr 2"]]] },
+      { k: "myl", n: "Mohos y lev.", u: "UFC/100ml", esp: "Esp MyL UFC/100ml", lect: [[24, ["MyL 24Hr"]], [48, ["MyL 48Hr"]], [72, ["MyL 72Hr"]], [96, ["MyL 96Hr"]], [120, ["MyL 120Hr"]]] },
+    ];
+    const DEF_DET = ["r36", "r22", "col", "pse"];
+    const GRUPOS = ["Pulidores", "UV", "Pozos", "Otros"];
+    const GC = { Pulidores: "var(--g-pul)", UV: "var(--g-uv)", Pozos: "var(--g-poz)", Otros: "var(--g-otr)" };
+    const GNOM = { Pulidores: "Pulidores", UV: "Salida UV", Pozos: "Pozos y cisterna", Otros: "Otros" };
+    const LS = { vistos: "microTA.vistos", avisos: "microTA.avisos", pref: "microTA.pref", cache: "microTA.cache", leido: "microTA.leido", filtro: "microTA.filtro", rec: "microTA.recordado" };
+    const store = {
+      get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v) } catch (e) { return d } },
+      set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) { } }
+    };
+
+    // ---------- utilidades ----------
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const DIA_MS = 864e5;
+    function hoyISO() { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())).toISOString().slice(0, 10) }
+    function addDays(iso, d) { return new Date(Date.parse(iso + "T00:00:00Z") + d * DIA_MS).toISOString().slice(0, 10) }
+    function diasEntre(a, b) { return Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / DIA_MS) }
+    function fmtD(iso) { if (!iso) return "—"; const [, m, d] = iso.split("-"); return d + "/" + m }
+    const DSEM = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+    const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+    const MES3 = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    function dsem(iso) { return DSEM[new Date(iso + "T12:00:00Z").getUTCDay()] }
+    function fmtHora(ts) { return new Date(ts).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" }) }
+    function fmtAt(ts) { return new Date(ts).toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit" }) + " " + fmtHora(ts) }
+    function hace(ts) {
+      const m = Math.round((Date.now() - ts) / 6e4);
+      if (m < 1) return "recién"; if (m < 60) return "hace " + m + " min";
+      const h = Math.floor(m / 60); if (h < 24) return "hace " + h + " h" + (m % 60 ? " " + (m % 60) + " min" : "");
+      const d = Math.floor(h / 24); return "hace " + d + (d === 1 ? " día" : " días");
+    }
+    function parseAt(v) { const t = Date.parse(String(v || "").replace(/(\.\d{3})\d+/, "$1")); return isNaN(t) ? null : t }
+    function isoFecha(v) {
+      if (v == null || v === "") return null;
+      if (typeof v === "number") return new Date(Date.UTC(1899, 11, 30) + Math.round(v * DIA_MS)).toISOString().slice(0, 10);
+      const s = String(v).trim(); let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/); if (m) return m[0];
+      m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+      if (/^\d+(\.\d+)?$/.test(s)) return isoFecha(Number(s));
+      return null;
+    }
+    function lectura(v) {
+      if (v == null) return null;
+      if (typeof v === "number") return { v, raw: String(v) };
+      const s = String(v).trim(); if (!s || /^(-+|n\/?a|na|#.*)$/i.test(s)) return null;
+      if (/inc|tntc|incont/i.test(s)) return { v: Infinity, raw: s, txt: "Inc." };
+      const m = s.match(/^[<>≤]?\s*(\d+(?:[.,]\d+)?)/);
+      if (m) return { v: Number(m[1].replace(",", ".")), raw: s, raro: !/^\d+(?:[.,]\d+)?$/.test(s) };
+      return { v: null, raw: s, raro: true };
+    }
+    const numero = v => { const x = lectura(v); return x && isFinite(x.v) ? x.v : null };
+    function grupoDe(m) { m = m.toLowerCase(); if (m.includes("pulidor")) return "Pulidores"; if (m.includes("uv")) return "UV"; if (m.includes("pozo") || m.includes("cisterna")) return "Pozos"; return "Otros" }
+    const corto = m => m.replace(/^Pozo externo - /i, "").replace(/^Agua de /i, "").replace(/^Agua /i, "").replace(/^Salida /i, "").replace(/envío a /i, "→ ");
+    const turnoN = t => { const s = String(t || "").trim().toLowerCase(); return s ? s[0].toUpperCase() + s.slice(1) : "—" };
+    const fmtV = l => l.txt || (isFinite(l.v) ? Number(l.v).toLocaleString("es-BO") : "Inc.");
+    const pct = x => Math.round(x * 100) + " %";
+    const gdot = (g, ring) => `<span class="gdot${ring ? " ring" : ""}" style="--gc:${GC[g]}"></span>`;
+
+    // ---------- lectura de las filas del Excel ----------
+    function parseFilas(j) {
+      const arr = Array.isArray(j) ? j : (j.filas || j.value || j.rows || []);
+      const out = [], occ = {};
+      for (const r of arr) {
+        const fecha = isoFecha(r[COL.fecha]); const muestra = String(r[COL.muestra] ?? "").replace(/\s+/g, " ").trim();
+        if (!fecha || !muestra) continue;
+        const turno = turnoN(r[COL.turno]);
+        let key = fecha + "|" + turno + "|" + muestra; occ[key] = (occ[key] || 0) + 1; if (occ[key] > 1) key += "#" + occ[key];
+        const det = DET.map(d => {
+          const espV = numero(r[d.esp]);
+          const lect = d.lect.map(([h, cols]) => {
+            const reps = cols.map(c => lectura(r[c])).filter(Boolean);
+            const vals = reps.filter(x => x.v != null).map(x => x.v);
+            const v = vals.length ? Math.max(...vals) : null;
+            return { h, v, reps, raro: reps.some(x => x.raro), txt: (reps.find(x => x.txt) || {}).txt, desvio: v != null && espV != null && v > espV };
+          });
+          const ult = lect[lect.length - 1];
+          return { ...d, espV, lect, hechas: lect.filter(l => l.v != null).length, final: ult.v != null, fin: ult.v, desvio: lect.some(l => l.desvio) };
+        });
+        out.push({ key, id: r[COL.id], fecha, turno, analista: String(r[COL.analista] ?? "").trim(), muestra, grupo: grupoDe(muestra), obs: String(r[COL.obs] ?? "").trim(), det, raw: r });
+      }
+      const esperado = {};
+      for (const f of out) for (const d of f.det) if (d.hechas) (esperado[f.muestra] = esperado[f.muestra] || new Set()).add(d.k);
+      const hoy = hoyISO();
+      for (const f of out) {
+        const exp = esperado[f.muestra] || new Set(DEF_DET);
+        f.vis = f.det.filter(d => exp.has(d.k) || d.hechas);
+        f.nLect = f.vis.reduce((a, d) => a + d.hechas, 0);
+        f.conRes = f.nLect > 0;
+        f.desvio = f.vis.some(d => d.desvio);
+        f.completa = f.vis.length > 0 && f.vis.every(d => d.final);
+        const pend = f.vis.flatMap(d => d.lect.filter(l => l.v == null).map(l => l.h));
+        f.prox = pend.length ? Math.min(...pend) : null;
+        f.vence = f.prox ? addDays(f.fecha, f.prox / 24) : null;
+        const edad = diasEntre(f.fecha, hoy);
+        f.estado = f.desvio ? "desvio" : f.completa ? "ok" : f.nLect ? (edad > 7 ? "incompleta" : f.vence < hoy ? "atraso" : "curso") : (edad >= 3 ? "sin" : "sembrada");
+      }
+      return out;
+    }
+
+    // ---------- estado ----------
+    let S = { live: [], hist: [], all: [], at: null, histAt: null, src: "none", err: "", loading: false, checked: null, dia: null, vista: "dia" };
+    let F = Object.assign({ grupo: "Todos", turno: "Todos", estado: null }, store.get(LS.filtro, {}));
+    let PREF = Object.assign({ notif: true, muestras: true, lecturas: true, soloDesvios: false, tema: "auto", recordar: true, horaRec: "09:00" }, store.get(LS.pref, {}));
+    let CAL = { mes: null, punto: "Todos" };
+    let TR = { punto: null, rango: 30 };
+    let DEMO = null;
+
+    function aplicarTema() { if (PREF.tema === "auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.dataset.theme = PREF.tema }
+    aplicarTema();
+
+    function unir() {
+      const dl = new Set(S.live.map(f => f.fecha));
+      S.all = S.hist.filter(f => !dl.has(f.fecha)).concat(S.live);
+      S._fechas = [...new Set(S.all.map(f => f.fecha))].sort().reverse();
+    }
+    const fechas = () => S._fechas || [];
+    const fechasLive = () => [...new Set(S.live.map(f => f.fecha))].sort().reverse();
+
+    function aplicar(j, src) {
+      const filas = parseFilas(j);
+      if (!filas.length) throw new Error("data.json sin filas de TA DIARIO");
+      const antes = fechas()[0];
+      const prev = store.get(LS.vistos, null), fr = firma(filas);
+      S.live = filas; S.at = parseAt(j.at) || Date.now(); S.src = src; S.err = "";
+      if (prev) { const ev = detectar(prev, filas); if (ev.length) registrar(ev) }
+      store.set(LS.vistos, Object.assign(prev || {}, fr));
+      if (src === "live") store.set(LS.cache, j);
+      unir();
+      const fs = fechas();
+      if (!S.dia || !fs.includes(S.dia) || S.dia === antes) S.dia = fs[0];
+      render(); revisarRecordatorio();
+    }
+
+    async function cargar() {
+      if (S.loading || DEMO) return;
+      S.loading = true; liveRender();
+      try {
+        const j = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" }).then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json() });
+        aplicar(j, "live");
+      } catch (e) {
+        S.err = String(e && e.message || e);
+        if (!S.live.length) { const c = store.get(LS.cache, null); if (c) { try { aplicar(c, "cache") } catch (x) { } } }
+        if (!S.live.length) await cargarEjemplo();
+      }
+      S.loading = false; S.checked = Date.now(); liveRender();
+    }
+    async function cargarHist() {
+      let j = null;
+      try { j = await fetch(HIST_URL + "?d=" + hoyISO() + "-" + new Date().getHours(), { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json() }) }
+      catch (e) { await cargarEjemplo(true); j = window.DEMO_HIST || null }
+      if (!j) return;
+      S.hist = parseFilas(j); S.histAt = parseAt(j.at); unir(); render();
+    }
+    // Abriendo index.html con doble clic (file://) no se pueden leer los .json: se usa demo-data.js (copia del Excel)
+    let _ej = null;
+    function cargarEjemplo(soloScript) {
+      if (!_ej) _ej = new Promise(res => {
+        if (window.DEMO_DATA) return res();
+        const s = document.createElement("script"); s.src = "demo-data.js"; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s);
+      });
+      return _ej.then(() => { if (!soloScript && window.DEMO_DATA && !S.live.length) { try { aplicar(window.DEMO_DATA, "ejemplo") } catch (e) { } } });
+    }
+
+    // ---------- novedades → avisos ----------
+    function firma(filas) { const o = {}; for (const f of filas) { const s = {}; for (const d of f.det) for (const l of d.lect) if (l.v != null) s[d.k + "@" + l.h] = 1; o[f.key] = s } return o }
+    function detectar(prev, filas) {
+      const ev = [], nuevas = {}, lect = {}, ahora = Date.now();
+      for (const f of filas) {
+        const p = prev[f.key];
+        if (!p) (nuevas[f.fecha + "|" + f.turno] = nuevas[f.fecha + "|" + f.turno] || []).push(f);
+        for (const d of f.det) for (const l of d.lect) {
+          if (l.v == null || (p && p[d.k + "@" + l.h])) continue;
+          const g = f.fecha + "|" + l.h; (lect[g] = lect[g] || []).push({ f, d, l });
+        }
+      }
+      for (const [g, fs] of Object.entries(nuevas)) {
+        const [fecha, turno] = g.split("|"); const an = [...new Set(fs.map(f => f.analista).filter(Boolean))].join(", ");
+        ev.push({ tipo: "muestra", fecha, t: `Muestra tomada · ${turno} ${fmtD(fecha)}`, b: `${fs.length} punto${fs.length > 1 ? "s" : ""}${an ? " · " + an : ""}: ${fs.slice(0, 4).map(f => corto(f.muestra)).join(", ")}${fs.length > 4 ? "…" : ""}` });
+      }
+      const desvios = [];
+      for (const [g, xs] of Object.entries(lect).sort()) {
+        const [fecha, hs] = g.split("|"), h = Number(hs);
+        const puntos = new Set(xs.map(x => x.f.key)), dv = xs.filter(x => x.l.desvio);
+        const todas = filas.filter(f => f.fecha === fecha && f.vis.some(d => d.lect.some(l => l.h === h)));
+        const completo = todas.length && todas.every(f => f.vis.every(d => { const l = d.lect.find(x => x.h === h); return !l || l.v != null }));
+        ev.push({ tipo: dv.length ? "desvio" : "lectura", fecha, t: `Lectura ${h} h cargada · muestras del ${fmtD(fecha)}${completo ? " (intervalo completo)" : ""}`, b: `${puntos.size} punto${puntos.size > 1 ? "s" : ""} · ${dv.length ? dv.length + " desvío" + (dv.length > 1 ? "s" : "") + " fuera de especificación" : "todo dentro de especificación"}` });
+        desvios.push(...dv);
+      }
+      for (const x of desvios.slice(0, 5)) ev.push({ tipo: "desvio", fecha: x.f.fecha, t: `Desvío · ${x.f.muestra}`, b: `${x.d.n} ${x.l.h} h = ${fmtV(x.l)} ${x.d.u} (Esp ≤ ${x.d.espV}) · ${x.f.turno} ${fmtD(x.f.fecha)}` });
+      return ev.map((e, i) => ({ ...e, id: ahora + "-" + i, ts: ahora }));
+    }
+    function registrar(ev) {
+      const log = store.get(LS.avisos, []); store.set(LS.avisos, ev.slice().reverse().concat(log).slice(0, 150));
+      ev.filter(quiereAviso).slice(0, 4).forEach(avisarSO);
+      ev.slice(0, 3).forEach(toast);
+      badge();
+    }
+    function quiereAviso(e) { if (!PREF.notif) return false; if (e.tipo === "desvio") return true; if (e.tipo === "recordatorio") return PREF.recordar; if (PREF.soloDesvios) return false; return e.tipo === "muestra" ? PREF.muestras : PREF.lecturas }
+    async function avisarSO(e) {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const opt = { body: e.b, icon: "icon-192.png", badge: "favicon.png", tag: e.id, requireInteraction: e.tipo === "desvio", data: { vista: e.tipo === "desvio" ? "desvios" : "dia" } };
+      try { const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (reg) return reg.showNotification(e.t, opt) } catch (x) { }
+      try { new Notification(e.t, opt) } catch (x) { }
+    }
+    function toast(e) {
+      const box = document.getElementById("toasts"); const d = document.createElement("div");
+      d.className = "toast" + (e.tipo === "desvio" ? " desvio" : e.tipo === "recordatorio" ? " recordatorio" : ""); d.innerHTML = `<b>${esc(e.t)}</b>${esc(e.b)}`;
+      d.onclick = () => d.remove(); box.appendChild(d); setTimeout(() => d.remove(), 7000);
+      while (box.children.length > 3) box.firstElementChild.remove();
+    }
+    function noLeidos() { const t = store.get(LS.leido, 0); return store.get(LS.avisos, []).filter(e => e.ts > t).length }
+    function badge() { const n = noLeidos(), b = document.getElementById("bellN"); b.hidden = !n; b.textContent = n > 99 ? "99+" : n; tabsRender() }
+
+    // ---------- iconos ----------
+    const IC = {
+      ref: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4.5h-4.5"/></svg>',
+      bad: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 1.5 21h21L12 3Zm-1 6h2v6h-2V9Zm0 8h2v2h-2v-2Z"/></svg>',
+      ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+      clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+      dash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 12h12"/></svg>',
+      sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+      moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg>',
+      flask: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/></svg>',
+      alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>',
+      bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+      day: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>',
+      cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/><path d="M7.5 13.5h.01M12 13.5h.01M16.5 13.5h.01M7.5 17h.01M12 17h.01"/></svg>',
+      trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-7"/></svg>',
+      prev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
+      next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+    };
+    const icTurno = t => /tarde|noche/i.test(t) ? IC.moon : IC.sun;
+
+    // ---------- barra de estado ----------
+    function liveRender() {
+      let dot = "off", l1, l2;
+      if (S.src === "live") {
+        const viejo = Date.now() - S.at > STALE_H * 36e5; dot = viejo ? "warn" : "ok";
+        l1 = `Automate actualizó <b>${fmtAt(S.at)}</b> · ${hace(S.at)}`;
+        l2 = viejo ? `El flujo no actualiza hace más de ${STALE_H} h · revisa Power Automate` : `App revisada ${S.checked ? fmtHora(S.checked) : "—"} · cada minuto`;
+      } else if (S.src === "cache") { dot = "warn"; l1 = `Copia guardada · Automate <b>${fmtAt(S.at)}</b>`; l2 = "Sin conexión con data.json · " + esc(S.err) }
+      else if (S.src === "demo") { dot = "warn"; l1 = `Repitiendo el ${fmtD(DEMO && DEMO.fecha)} con datos reales del Excel`; l2 = `Paso ${DEMO ? DEMO.paso + 1 : 0} de ${PASOS.length} · revisión automática en pausa` }
+      else if (S.src === "ejemplo") { l1 = `Copia del Excel · corte <b>${fmtAt(S.at)}</b>`; l2 = "Sin flujo conectado todavía (abierto como archivo local)" }
+      else { l1 = S.loading ? "Leyendo la base de datos…" : "Sin datos"; l2 = esc(S.err) }
+      document.getElementById("live").innerHTML = `<span class="dot ${dot}"></span><div class="txt">${l1}<small>${l2}</small></div><button class="rbtn${S.loading ? " spin" : ""}" id="rl" aria-label="Actualizar ahora">${IC.ref}</button>`;
+      document.getElementById("rl").onclick = () => DEMO ? salirDemo() : cargar();
+      document.getElementById("demoBar").innerHTML = DEMO ? `<div class="demo-bar">Repetición del último día · datos reales<button id="dx">Terminar</button></div>` : "";
+      if (DEMO) document.getElementById("dx").onclick = salirDemo;
+    }
+
+    // ================= Día =================
+    function pill(f) {
+      const hoy = hoyISO();
+      switch (f.estado) {
+        case "desvio": return `<span class="pill p-bad">${IC.bad}Desvío</span>`;
+        case "ok": return `<span class="pill p-ok">${IC.ok}Conforme</span>`;
+        case "curso": return `<span class="pill p-neu">${IC.clock}Lectura ${f.prox} h · ${f.vence === hoy ? "hoy" : fmtD(f.vence)}</span>`;
+        case "atraso": return `<span class="pill p-neu">${IC.clock}Falta ${f.prox} h (${fmtD(f.vence)})</span>`;
+        case "sembrada": return `<span class="pill p-neu">${IC.clock}Sembrada</span>`;
+        case "incompleta": return `<span class="pill p-neu">${IC.dash}Incompleta</span>`;
+        default: return `<span class="pill p-neu">${IC.dash}Sin resultados</span>`;
+      }
+    }
+    function tarjeta(f) {
+      const hs = [...new Set(f.vis.flatMap(d => d.lect.map(l => l.h)))].sort((a, b) => a - b);
+      const filas = f.vis.map(d => `<tr class="${d.desvio ? "bad" : ""}"><th>${d.n}</th>${hs.map(h => {
+        const l = d.lect.find(x => x.h === h);
+        if (!l) return `<td class="na"></td>`;
+        if (l.v == null) return `<td class="pend" title="Pendiente · lectura ${h} h el ${fmtD(addDays(f.fecha, h / 24))}">·</td>`;
+        const tip = (l.reps.length > 1 ? "Réplicas: " + l.reps.map(x => x.raw).join(" / ") + " · " : "") + (l.raro ? "Texto en el Excel: " + l.reps.map(x => x.raw).join(" / ") + " · " : "") + `Esp ≤ ${d.espV ?? "—"} ${d.u}`;
+        return `<td class="${l.desvio ? "dv" : ""}${l.raro ? " raro" : ""}" title="${esc(tip)}">${l.desvio ? "▲ " : ""}${fmtV(l)}</td>`;
+      }).join("")}<td class="esp">≤ ${d.espV ?? "—"}</td></tr>`).join("");
+      // Conformes y sin resultados se muestran plegadas (una línea); se abren con un toque
+      const plegable = PLEGABLES.includes(f.estado), abierta = !plegable || ABIERTAS.has(f.key);
+      const cab = `<div class="ch"${plegable ? ` role="button" tabindex="0" aria-expanded="${abierta}" data-k="${esc(f.key)}"` : ""}><div class="nm"><h3>${esc(f.muestra)}</h3><div class="meta">${icTurno(f.turno)}${esc(f.turno)}${f.analista ? " · " + esc(f.analista) : ""}${f.id != null && f.id !== "" ? `<span class="nro"> · N° ${esc(f.id)}</span>` : ""}</div></div>${pill(f)}${plegable ? `<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>` : ""}</div>`;
+      if (!abierta) return `<article class="card min" style="--gc:${GC[f.grupo]}">${cab}</article>`;
+      return `<article class="card" style="--gc:${GC[f.grupo]}">${cab}
+        ${f.nLect === 0 ? `<div class="meta" style="margin-top:5px">${f.estado === "sin" ? "Sin lecturas cargadas en el Excel." : "Esperando la primera lectura (24 h)."}</div>`
+          : `<div class="tw"><table class="res"><thead><tr><th></th>${hs.map(h => `<th>${h} h</th>`).join("")}<th>Esp</th></tr></thead><tbody>${filas}</tbody></table></div>`}
+        ${f.obs ? `<div class="obs">${esc(f.obs)}</div>` : ""}
+      </article>`;
+    }
+    const PLEGABLES = ["ok", "sin", "incompleta"], ABIERTAS = new Set();
+    const EN_CURSO = ["curso", "sembrada", "atraso"];
+    function pasaFiltro(f) {
+      if (F.grupo !== "Todos" && f.grupo !== F.grupo) return false;
+      if (F.turno !== "Todos" && f.turno !== F.turno) return false;
+      if (F.estado === "desvio" && !f.desvio) return false;
+      if (F.estado === "ok" && f.estado !== "ok") return false;
+      if (F.estado === "curso" && !EN_CURSO.includes(f.estado)) return false;
+      return true;
+    }
+    function vDia() {
+      const fs = fechas(); if (!fs.length) return `<div class="empty">${S.loading ? "Cargando…" : "No hay datos de TA DIARIO."}</div>`;
+      const dia = S.dia, del = S.all.filter(f => f.fecha === dia);
+      const n = { tot: del.length, ok: del.filter(f => f.estado === "ok").length, curso: del.filter(f => EN_CURSO.includes(f.estado)).length, dv: del.filter(f => f.desvio).length, sin: del.filter(f => !f.conRes).length };
+      let tira = fs.slice(0, 14); if (!tira.includes(dia)) tira = [dia, ...tira.slice(0, 13)].sort().reverse();
+      const strip = tira.map(d => {
+        const k = S.all.filter(f => f.fecha === d && f.desvio).length;
+        return `<button class="day" data-d="${d}" aria-pressed="${d === dia}"><span>${dsem(d)}</span><b class="num">${fmtD(d)}</b><i class="${k ? "bad" : ""}">${k ? "▲ " + k : "✓"}</i></button>`;
+      }).join("") + `<button class="day more" data-v2="calendario">${IC.cal}Más<br>días</button>`;
+      const kp = (key, v, t, cls = "") => `<button class="tile ${cls}" data-e="${key}" aria-pressed="${F.estado === key}"><b class="num">${v}</b><span>${t}</span></button>`;
+      const turnos = ["Todos", ...new Set(del.map(f => f.turno))];
+      const gruposDia = GRUPOS.filter(g => del.some(f => f.grupo === g));
+      const segG = `<div class="seg" role="group" aria-label="Grupo"><button data-g="Todos" aria-pressed="${F.grupo === "Todos"}">Todos</button>${gruposDia.map(g => `<button data-g="${g}" aria-pressed="${F.grupo === g}">${gdot(g)}${GNOM[g].split(" ")[0] === "Salida" ? "UV" : GNOM[g].split(" ")[0]}</button>`).join("")}</div>`;
+      const segT = turnos.length > 2 ? `<div class="seg" role="group" aria-label="Turno">${turnos.map(t => `<button data-t="${esc(t)}" aria-pressed="${t === F.turno}">${t === "Todos" ? "" : icTurno(t).replace("<svg", '<svg width="13" height="13"')}${esc(t)}</button>`).join("")}</div>` : "";
+      const vis = del.filter(pasaFiltro);
+      const orden = { desvio: 0, atraso: 1, curso: 2, sembrada: 3, ok: 4, incompleta: 5, sin: 6 };
+      let lista = "";
+      for (const g of GRUPOS) {
+        const xs = vis.filter(f => f.grupo === g).sort((a, b) => (orden[a.estado] - orden[b.estado]) || a.turno.localeCompare(b.turno) || a.muestra.localeCompare(b.muestra));
+        if (!xs.length) continue;
+        const k = xs.filter(f => f.desvio).length;
+        // las filas que nunca recibieron lecturas se resumen en una línea plegable
+        const sin = xs.filter(f => f.estado === "sin"), con = xs.filter(f => f.estado !== "sin"), kSin = "sin|" + g;
+        const abiertoSin = ABIERTAS.has(kSin);
+        const lineaSin = sin.length ? `<button class="sinres" data-sin="${kSin}" aria-expanded="${abiertoSin}">${IC.dash}<span>${sin.length} sin resultados · ${esc([...new Set(sin.map(f => corto(f.muestra)))].join(", "))}</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>` + (abiertoSin ? sin.map(tarjeta).join("") : "") : "";
+        lista += `<div class="ghead" style="--gc:${GC[g]}"><span class="gbar"></span>${GNOM[g]}<small>${xs.length} muestra${xs.length > 1 ? "s" : ""}</small>${k ? `<small class="bad">▲ ${k} con desvío</small>` : ""}</div>` + con.map(tarjeta).join("") + lineaSin;
+      }
+      return `${lineaHoy()}<div class="days" id="days">${strip}</div>
+        <div class="tiles">${kp("todas", n.tot, "Muestras")}${kp("ok", n.ok, "Conformes")}${kp("curso", n.curso, "En curso")}${kp("desvio", n.dv, "Con desvío", n.dv ? "bad" : "")}</div>
+        <div class="row">${segG}${segT}</div>
+        ${lista || `<div class="empty">Ninguna muestra con este filtro.</div>`}
+        <p class="note">${dsem(dia)} ${fmtD(dia)}${n.sin ? " · " + n.sin + " sin resultados" : ""} · ▲ fuera de especificación (lectura &gt; Esp) · “·” pendiente · toca una muestra conforme para ver sus lecturas.</p>`;
+    }
+    // Línea discreta arriba de Día: qué toca revisar hoy según la agenda
+    function lineaHoy() {
+      const hoy = hoyISO(), ag = agenda(), pend = ag.filter(x => x.due <= hoy && x.listo < x.total && diasEntre(x.due, hoy) <= 3), toma = tomaHoy();
+      const deHoy = ag.filter(x => x.due === hoy);
+      let txt, cls;
+      if (pend.length) { const f = pend.reduce((a, x) => a + x.total - x.listo, 0); txt = `Toca revisar: ${pend.map(x => x.h + " h del " + fmtD(x.fecha)).join(", ")} · faltan ${f} lecturas`; cls = "warn" }
+      else if (deHoy.length) { txt = `Lecturas de hoy al día (${deHoy.map(x => x.h + " h").join(", ")})`; cls = "ok" }
+      else if (toma && !toma.ok) { txt = "Muestras de hoy aún no registradas en el Excel"; cls = "neu" }
+      else return "";
+      return `<button class="agline ${cls}" data-v2="avisos">${cls === "ok" ? IC.ok : IC.clock}<span>${txt}</span>${IC.next}</button>`;
+    }
+    function wireDia() {
+      document.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { S.dia = b.dataset.d; render() });
+      document.querySelectorAll("[data-e]").forEach(b => b.onclick = () => { const e = b.dataset.e; F.estado = (e === "todas" || F.estado === e) ? null : e; render() });
+      document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { F.grupo = b.dataset.g; guardarFiltro(); render() });
+      document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { F.turno = b.dataset.t; guardarFiltro(); render() });
+      document.querySelectorAll("[data-v2]").forEach(b => b.onclick = () => ir(b.dataset.v2));
+      document.querySelectorAll("[data-sin]").forEach(b => b.onclick = () => { const k = b.dataset.sin; ABIERTAS.has(k) ? ABIERTAS.delete(k) : ABIERTAS.add(k); render() });
+      document.querySelectorAll(".ch[data-k]").forEach(h => {
+        const t = () => { const k = h.dataset.k; ABIERTAS.has(k) ? ABIERTAS.delete(k) : ABIERTAS.add(k); render() };
+        h.onclick = t; h.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); t() } };
+      });
+      const tira = document.getElementById("days"), sel = tira && tira.querySelector('.day[aria-pressed="true"]');
+      if (sel && (sel.offsetLeft < tira.scrollLeft || sel.offsetLeft + sel.offsetWidth > tira.scrollLeft + tira.clientWidth)) tira.scrollLeft = sel.offsetLeft - 16;
+    }
+    function guardarFiltro() { store.set(LS.filtro, { grupo: F.grupo, turno: F.turno }) }
+
+    // ================= Calendario =================
+    const meses = () => [...new Set(fechas().map(d => d.slice(0, 7)))].sort();
+    const puntos = () => { const m = new Map(); for (const f of S.all) m.set(f.muestra, f.grupo); return [...m].sort((a, b) => GRUPOS.indexOf(a[1]) - GRUPOS.indexOf(b[1]) || a[0].localeCompare(b[0], "es", { numeric: true })) };
+    function selPunto(id, actual, conTodos) {
+      const ps = puntos();
+      return `<select class="sel" id="${id}" aria-label="Punto de muestreo">${conTodos ? `<option value="Todos"${actual === "Todos" ? " selected" : ""}>Todos los puntos</option>` : ""}${GRUPOS.filter(g => ps.some(p => p[1] === g)).map(g => `<optgroup label="${GNOM[g]}">${ps.filter(p => p[1] === g).map(([m]) => `<option${m === actual ? " selected" : ""}>${esc(m)}</option>`).join("")}</optgroup>`).join("")}</select>`;
+    }
+    function resumen(rows) {
+      const con = rows.filter(f => f.conRes), dv = con.filter(f => f.desvio).length;
+      return { n: rows.length, con: con.length, dv, conf: con.length ? 1 - dv / con.length : null, dias: new Set(con.map(f => f.fecha)).size };
+    }
+    function vCal() {
+      const ms = meses(); if (!ms.length) return `<div class="empty">Cargando historial…</div>`;
+      if (!CAL.mes || !ms.includes(CAL.mes)) CAL.mes = ms[ms.length - 1];
+      const [y, m] = CAL.mes.split("-").map(Number), i = ms.indexOf(CAL.mes);
+      const delMes = S.all.filter(f => f.fecha.startsWith(CAL.mes) && (CAL.punto === "Todos" || f.muestra === CAL.punto));
+      const porDia = {}; for (const f of delMes) (porDia[f.fecha] = porDia[f.fecha] || []).push(f);
+      const primero = new Date(Date.UTC(y, m - 1, 1)), offset = (primero.getUTCDay() + 6) % 7, nd = new Date(Date.UTC(y, m, 0)).getUTCDate();
+      let cells = ["L", "M", "M", "J", "V", "S", "D"].map(d => `<div class="wd">${d}</div>`).join("");
+      for (let k = 0; k < offset; k++) cells += `<div class="cd out"></div>`;
+      for (let d = 1; d <= nd; d++) {
+        const iso = `${CAL.mes}-${String(d).padStart(2, "0")}`, rows = porDia[iso] || [], sel = iso === S.dia ? " sel" : "";
+        if (!rows.length) { cells += `<div class="cd none${sel}"><span class="n">${d}</span></div>`; continue }
+        const dv = rows.filter(f => f.desvio).length;
+        if (CAL.punto === "Todos") {
+          const dots = GRUPOS.filter(g => rows.some(f => f.grupo === g)).map(g => gdot(g, !rows.some(f => f.grupo === g && f.conRes))).join("");
+          cells += `<button class="cd has${sel}" data-cd="${iso}" aria-label="${d} de ${MESES[m - 1]}: ${rows.length} muestras, ${dv} con desvío"><span class="n">${d}</span><span class="dots">${dots}</span>${dv ? `<span class="dvc">▲${dv}</span>` : ""}</button>`;
+        } else {
+          const st = dv ? "st-bad" : rows.some(f => f.conRes) ? "st-ok" : "has";
+          const ic = dv ? "▲" : rows.some(f => f.conRes) ? "✓" : "·";
+          cells += `<button class="cd ${st}${sel}" data-cd="${iso}" aria-label="${d} de ${MESES[m - 1]}: ${dv ? "desvío" : rows.some(f => f.conRes) ? "conforme" : "sin resultados"}"><span class="n">${d}</span><span class="ic">${ic}</span>${rows.length > 1 ? `<span class="dvc" style="color:var(--muted);font-weight:400">${rows.length}×</span>` : ""}</button>`;
+        }
+      }
+      const r = resumen(delMes);
+      const leyenda = CAL.punto === "Todos"
+        ? GRUPOS.filter(g => delMes.some(f => f.grupo === g)).map(g => `<span>${gdot(g)}${GNOM[g]}</span>`).join("") + `<span>${gdot("Otros", true)}Sin resultados</span><span style="color:var(--bad);font-weight:700">▲ n</span><span>Muestras con desvío</span>`
+        : `<span>✓ Conforme</span><span style="color:var(--bad)">▲ Desvío</span><span>· Sin resultados</span><span>2× = mañana y tarde</span>`;
+      const porGrupo = CAL.punto === "Todos" ? `<h2>Por grupo<small>${MESES[m - 1]}</small></h2><section class="panel grows">${GRUPOS.map(g => [g, resumen(delMes.filter(f => f.grupo === g))]).filter(([, x]) => x.n).map(([g, x]) => `<div class="grow">${gdot(g)}<span class="nm">${GNOM[g]}</span><span class="v"><b class="num">${x.conf == null ? "—" : pct(x.conf)}</b> conformes<br>${x.con} con resultado · ${x.dv} desvío${x.dv === 1 ? "" : "s"}</span></div>`).join("")}</section>` : "";
+      return `<div class="row" style="margin-top:2px">${selPunto("calP", CAL.punto, true)}</div>
+        <div class="calh"><button class="nav" id="calPrev" ${i <= 0 ? "disabled" : ""} aria-label="Mes anterior">${IC.prev}</button><h2>${MESES[m - 1]} ${y}</h2><button class="nav" id="calNext" ${i >= ms.length - 1 ? "disabled" : ""} aria-label="Mes siguiente">${IC.next}</button></div>
+        <div class="cal">${cells}</div>
+        <div class="legend">${leyenda}</div>
+        <h2>Resumen del mes</h2>
+        <div class="tiles">${[["Días con muestreo", r.dias], ["Con resultado", r.con], ["Conformidad", r.conf == null ? "—" : pct(r.conf)], ["Con desvío", r.dv]].map(([t, v], k) => `<div class="tile${k === 3 && r.dv ? " bad" : ""}"><b class="num">${v}</b><span>${t}</span></div>`).join("")}</div>
+        ${porGrupo}
+        <p class="note">Toca un día para ver sus muestras. Datos: historial del Excel${S.histAt ? " al " + fmtAt(S.histAt) : ""} + últimos días de data.json.</p>`;
+    }
+    function wireCal() {
+      const ms = meses(), i = ms.indexOf(CAL.mes);
+      const p = document.getElementById("calPrev"), n = document.getElementById("calNext");
+      if (p) p.onclick = () => { CAL.mes = ms[i - 1]; render() };
+      if (n) n.onclick = () => { CAL.mes = ms[i + 1]; render() };
+      const s = document.getElementById("calP"); if (s) s.onchange = () => { CAL.punto = s.value; render() };
+      document.querySelectorAll("[data-cd]").forEach(b => b.onclick = () => { S.dia = b.dataset.cd; F.estado = null; if (CAL.punto !== "Todos") F.grupo = grupoDe(CAL.punto), guardarFiltro(); ir("dia") });
+    }
+
+    // ================= Tendencias (gráficos SVG con lectura al pasar el dedo/ratón) =================
+    const CH = {};
+    function niceMax(v) { if (v <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const s of [1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) if (s * p >= v) return s * p; return 10 * p }
+    function lineChart(id, cfg) {
+      // cfg: { series:[{name,color,pts:[{x,y,lab,dv}]}], yMin, yMax, ref:{v,lab}, yFmt, h, endLabels, unit }
+      const el = document.getElementById(id); if (!el) return;
+      const W = Math.max(280, el.clientWidth), H = cfg.h || 190, m = { l: 38, r: cfg.endLabels ? 78 : 14, t: 12, b: 24 };
+      const all = cfg.series.flatMap(s => s.pts); if (!all.length) { el.innerHTML = `<div class="empty">Sin resultados en este periodo.</div>`; return }
+      const x0 = Math.min(...all.map(p => p.x)), x1 = Math.max(...all.map(p => p.x)) || x0 + 1;
+      const yMax = cfg.yMax ?? niceMax(Math.max(...all.map(p => p.y), cfg.ref ? cfg.ref.v * 1.15 : 0)), yMin = cfg.yMin ?? 0;
+      const sx = x => m.l + (x1 === x0 ? (W - m.l - m.r) / 2 : (x - x0) / (x1 - x0) * (W - m.l - m.r));
+      const sy = y => m.t + (1 - (y - yMin) / (yMax - yMin)) * (H - m.t - m.b);
+      const fy = cfg.yFmt || (v => v.toLocaleString("es-BO"));
+      let g = "";
+      for (let k = 0; k <= 4; k++) { const v = yMin + (yMax - yMin) * k / 4, yy = sy(v); g += `<line x1="${m.l}" x2="${W - m.r}" y1="${yy}" y2="${yy}" style="stroke:${k ? "var(--grid)" : "var(--axis)"}" stroke-width="1"/><text class="tick" x="${m.l - 6}" y="${yy + 3.5}" text-anchor="end">${fy(v)}</text>` }
+      // marcas de tiempo: inicio de cada mes (o cada semana si el rango es corto)
+      const span = (x1 - x0) / DIA_MS, ticks = [];
+      const d0 = new Date(x0);
+      if (span > 50) { let t = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1); const paso = span > 200 ? 2 : 1; while (t <= x1) { ticks.push([t, MES3[new Date(t).getUTCMonth()]]); t = Date.UTC(new Date(t).getUTCFullYear(), new Date(t).getUTCMonth() + paso, 1) } }
+      else { let t = x0; const paso = span > 20 ? 7 : span > 8 ? 3 : 1; while (t <= x1 + 1) { const iso = new Date(t).toISOString().slice(0, 10); ticks.push([t, fmtD(iso)]); t += paso * DIA_MS } }
+      for (const [t, lab] of ticks) g += `<text class="tick" x="${sx(t)}" y="${H - 6}" text-anchor="middle">${lab}</text>`;
+      let refLab = "";
+      if (cfg.ref) { const yy = sy(cfg.ref.v); g += `<line x1="${m.l}" x2="${W - m.r}" y1="${yy}" y2="${yy}" style="stroke:var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`; refLab = `<text x="${m.l + 4}" y="${yy - 5}" style="font-weight:700;fill:var(--ink);stroke:var(--surface);stroke-width:4px;paint-order:stroke">${esc(cfg.ref.lab)}</text>` }
+      const ends = [];
+      for (const s of cfg.series) {
+        const pts = s.pts.slice().sort((a, b) => a.x - b.x); if (!pts.length) continue;
+        g += `<path d="${pts.map((p, k) => (k ? "L" : "M") + sx(p.x).toFixed(1) + " " + sy(p.y).toFixed(1)).join("")}" fill="none" style="stroke:${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+        if (cfg.markers) for (const p of pts) g += `<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="4" style="fill:${s.color};stroke:var(--surface)" stroke-width="2"/>`;
+        const rDv = pts.length > 60 ? 3.5 : 4.5;
+        for (const p of pts.filter(p => p.dv)) g += `<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="${rDv}" style="fill:var(--bad-fill);stroke:var(--surface)" stroke-width="1.5"/>`;
+        if (cfg.endLabels) { const p = pts[pts.length - 1]; ends.push({ y: sy(p.y), x: sx(p.x), s, p }) }
+      }
+      // etiquetas al final de cada línea, separadas para que no se encimen
+      ends.sort((a, b) => a.y - b.y); for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 14) ends[k].y = ends[k - 1].y + 14;
+      for (const e of ends) g += `<text class="lbl" x="${e.x + 8}" y="${e.y + 4}">${esc(e.s.name)} ${fy(e.p.y)}</text>`;
+      g += refLab;
+      g += `<line class="xh" x1="0" x2="0" y1="${m.t}" y2="${H - m.b}" style="stroke:var(--ink)" stroke-width="1" visibility="hidden"/><g class="hl"></g><rect x="${m.l}" y="0" width="${W - m.l - m.r}" height="${H}" fill="transparent" class="hit"/>`;
+      el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(cfg.aria || "")}">${g}</svg><div class="tt" hidden></div>`;
+      CH[id] = { cfg, sx, sy, m, W, H };
+      const svg = el.querySelector("svg"), tt = el.querySelector(".tt"), xh = el.querySelector(".xh"), hl = el.querySelector(".hl");
+      const mover = ev => {
+        const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * (W / r.width);
+        let best = null; for (const s of cfg.series) for (const p of s.pts) { const d = Math.abs(sx(p.x) - px); if (!best || d < best.d) best = { d, p } }
+        if (!best) return; const x = best.p.x, X = sx(x);
+        const enX = cfg.series.map(s => [s, s.pts.filter(p => p.x === x)]).filter(([, ps]) => ps.length);
+        xh.setAttribute("x1", X); xh.setAttribute("x2", X); xh.setAttribute("visibility", "visible");
+        hl.innerHTML = enX.flatMap(([s, ps]) => ps.map(p => `<circle cx="${X}" cy="${sy(p.y)}" r="5" style="fill:${p.dv ? "var(--bad-fill)" : s.color};stroke:var(--surface)" stroke-width="2"/>`)).join("");
+        tt.innerHTML = (cfg.ttHead ? cfg.ttHead(best.p) : "") + enX.flatMap(([s, ps]) => ps.map(p => cfg.ttRow(s, p))).join("<br>");
+        tt.hidden = false; const top = Math.min(...enX.flatMap(([, ps]) => ps.map(p => sy(p.y))));
+        tt.style.left = Math.min(Math.max(X / W * r.width, 80), r.width - 80) + "px"; tt.style.top = (top / H * r.height) + "px";
+      };
+      const salir = () => { tt.hidden = true; xh.setAttribute("visibility", "hidden"); hl.innerHTML = "" };
+      svg.addEventListener("pointermove", mover); svg.addEventListener("pointerdown", mover); svg.addEventListener("pointerleave", salir);
+    }
+
+    function conformidadMensual() {
+      const ms = meses(), series = [];
+      for (const g of GRUPOS) {
+        const pts = [];
+        for (const mm of ms) {
+          const con = S.all.filter(f => f.grupo === g && f.conRes && f.fecha.startsWith(mm)); if (con.length < 5) continue;
+          const [y, m] = mm.split("-").map(Number);
+          pts.push({ x: Date.UTC(y, m - 1, 15), y: 100 * (1 - con.filter(f => f.desvio).length / con.length), n: con.length, mes: mm });
+        }
+        if (pts.length) series.push({ name: GNOM[g].split(" ")[0] === "Salida" ? "UV" : GNOM[g].split(" ")[0], full: GNOM[g], color: GC[g], pts });
+      }
+      return series;
+    }
+    function trendPts(punto, k, desde) {
+      const pts = []; let esp = null;
+      for (const f of S.all) {
+        if (f.muestra !== punto || f.fecha < desde) continue;
+        const d = f.det.find(x => x.k === k); if (!d || d.fin == null || !isFinite(d.fin)) continue;
+        esp = d.espV ?? esp;
+        pts.push({ x: Date.parse(f.fecha + "T00:00:00Z") + (/tarde/i.test(f.turno) ? 12 * 36e5 : 0), y: d.fin, dv: d.espV != null && d.fin > d.espV, f, d });
+      }
+      return { pts, esp };
+    }
+    function vTend() {
+      const fs = fechas(); if (!fs.length) return `<div class="empty">Cargando historial…</div>`;
+      const ps = puntos();
+      if (!TR.punto || !ps.some(p => p[0] === TR.punto)) {
+        const cnt = {}; for (const f of S.all) if (f.desvio) cnt[f.muestra] = (cnt[f.muestra] || 0) + 1;
+        TR.punto = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]?.[0] || ps[0][0];
+      }
+      const ult = fs[0], desde = TR.rango ? addDays(ult, -TR.rango + 1) : fs[fs.length - 1];
+      const rows = S.all.filter(f => f.muestra === TR.punto && f.fecha >= desde), r = resumen(rows), g = grupoDe(TR.punto);
+      const otras = DET.filter(d => !["r36", "r22"].includes(d.k)).map(d => {
+        const con = rows.map(f => f.det.find(x => x.k === d.k)).filter(x => x && x.hechas);
+        if (!con.length) return "";
+        const pos = con.filter(x => x.lect.some(l => l.v > 0)).length, dv = con.filter(x => x.desvio).length;
+        return `<div class="mini${dv ? " bad" : ""}"><b>${d.n}</b>${dv ? `▲ ${dv} desvío${dv > 1 ? "s" : ""} · ` : ""}${pos} con recuento &gt; 0 de ${con.length}</div>`;
+      }).join("");
+      return `<h2>Conformidad mensual por grupo<small>% de muestras con resultado y sin desvío</small></h2>
+        <section class="panel"><div class="clegend">${conformidadMensual().map(s => `<span style="--gc:${s.color}"><i class="sw"></i>${s.full}</span>`).join("")}</div><div class="chart" id="chConf"></div></section>
+        <h2>Por punto de muestreo</h2>
+        <div class="row wrap">${selPunto("trP", TR.punto, false)}<div class="seg" role="group" aria-label="Periodo">${[[30, "30 días"], [90, "90 días"], [0, "Todo"]].map(([v, t]) => `<button data-r="${v}" aria-pressed="${TR.rango === v}">${t}</button>`).join("")}</div></div>
+        <div class="tiles t3" style="margin-top:10px"><div class="tile"><b class="num">${r.con}</b><span>Muestras con resultado</span></div><div class="tile"><b class="num">${r.conf == null ? "—" : pct(r.conf)}</b><span>Conformidad</span></div><div class="tile${r.dv ? " bad" : ""}"><b class="num">${r.dv}</b><span>Con desvío</span></div></div>
+        <section class="panel" style="margin-top:12px;--gc:${GC[g]}"><p class="ctitle">RTMe 36 °C · lectura final 48 h</p><p class="csub">UFC/ml · ${esc(TR.punto)}</p><div class="chart" id="ch36"></div>
+          <div class="clegend"><span style="--gc:${GC[g]}"><i class="sw"></i>Resultado</span><span><i class="ref"></i>Especificación</span><span><i class="mk"></i>Desvío</span></div></section>
+        <section class="panel" style="--gc:${GC[g]}"><p class="ctitle">RTMe 22 °C · lectura final 72 h</p><p class="csub">UFC/ml · ${esc(TR.punto)}</p><div class="chart" id="ch22"></div>
+          <div class="clegend"><span style="--gc:${GC[g]}"><i class="sw"></i>Resultado</span><span><i class="ref"></i>Especificación</span><span><i class="mk"></i>Desvío</span></div></section>
+        ${otras ? `<div class="minis">${otras}</div>` : ""}
+        <p class="note">Periodo ${fmtD(desde)} – ${fmtD(ult)}. Cada punto es una muestra (mañana y tarde por separado). Pasa el dedo sobre el gráfico para ver el valor.</p>`;
+    }
+    function dibujarTend() {
+      if (!fechas().length || !document.getElementById("chConf")) return;
+      const series = conformidadMensual();
+      const minY = Math.min(100, ...series.flatMap(s => s.pts.map(p => p.y)));
+      lineChart("chConf", {
+        series, markers: true, endLabels: true, yMin: [80, 60, 20, 0].find(v => v <= minY - 3) ?? 0, yMax: 100, h: 200, yFmt: v => Math.round(v) + "%", aria: "Conformidad mensual por grupo",
+        ttHead: p => `<b>${MESES[Number(p.mes.slice(5)) - 1]} ${p.mes.slice(0, 4)}</b><br>`, ttRow: (s, p) => `${s.full}: <b>${Math.round(p.y)} %</b> (${p.n} muestras)`
+      });
+      const fs = fechas(), desde = TR.rango ? addDays(fs[0], -TR.rango + 1) : fs[fs.length - 1], g = grupoDe(TR.punto);
+      for (const [id, k] of [["ch36", "r36"], ["ch22", "r22"]]) {
+        const { pts, esp } = trendPts(TR.punto, k, desde);
+        lineChart(id, {
+          series: [{ name: TR.punto, color: GC[g], pts }], markers: pts.length <= 40, ref: esp != null ? { v: esp, lab: "Esp ≤ " + esp } : null, h: 180, aria: TR.punto,
+          ttHead: () => "", ttRow: (s, p) => `<b>${dsem(p.f.fecha)} ${fmtD(p.f.fecha)}</b> · ${esc(p.f.turno)}<br>${p.d.n}: <b>${fmtV({ v: p.y })}</b> ${p.d.u}<br>${p.dv ? `<span class="bad">▲ Desvío (Esp ≤ ${p.d.espV})</span>` : `<span class="ok">✓ Conforme (Esp ≤ ${p.d.espV})</span>`}`
+        });
+      }
+    }
+    function wireTend() {
+      const s = document.getElementById("trP"); if (s) s.onchange = () => { TR.punto = s.value; render() };
+      document.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { TR.rango = Number(b.dataset.r); render() });
+      dibujarTend();
+    }
+
+    // ================= Desvíos =================
+    function vDesvios() {
+      const items = [];
+      for (const f of S.live) for (const d of f.vis) if (d.desvio) { const ls = d.lect.filter(l => l.desvio), l = ls[ls.length - 1]; items.push({ f, d, l, x: d.espV ? l.v / d.espV : null }) }
+      const fs = fechasLive();
+      if (!items.length) return `<h2>Desvíos<small>${fs.length} días</small></h2><div class="empty">Sin desvíos en el periodo. ✓</div>`;
+      const porPunto = {};
+      for (const it of items) { const p = porPunto[it.f.muestra] = porPunto[it.f.muestra] || { n: new Set(), dets: new Set(), g: it.f.grupo }; p.n.add(it.f.key); p.dets.add(it.d.n) }
+      const rank = Object.entries(porPunto).map(([m, p]) => ({ m, n: p.n.size, g: p.g, dets: [...p.dets].join(", ") })).sort((a, b) => b.n - a.n);
+      const tope = rank[0].n, muestrasDv = new Set(items.map(i => i.f.key)).size;
+      const gs = GRUPOS.filter(g => rank.some(r => r.g === g));
+      let h = `<h2>Desvíos recientes<small>${fmtD(fs[fs.length - 1])} – ${fmtD(fs[0])} · ${muestrasDv} muestras · ${rank.length} puntos</small></h2>
+        <section class="panel"><div class="clegend" style="margin:0 0 6px">${gs.map(g => `<span>${gdot(g)}${GNOM[g]}</span>`).join("")}</div>
+        ${rank.map(r => `<div class="rk" title="${esc(r.m)}: ${r.n} muestras con desvío (${esc(r.dets)})"><div class="rk-n">${esc(corto(r.m))}</div><div class="rk-b" style="--gc:${GC[r.g]}"><i style="width:${Math.max(2, 100 * r.n / tope) * .8}%"></i><span>${r.n}</span></div></div>`).join("")}</section>
+        <p class="note">Barras: muestras con al menos una lectura fuera de especificación, por punto. El historial completo está en Calendario y Tendencias.</p>`;
+      for (const d of fs) {
+        const xs = items.filter(i => i.f.fecha === d); if (!xs.length) continue;
+        h += `<h2>${dsem(d)} ${fmtD(d)}<small>${xs.length} desvío${xs.length > 1 ? "s" : ""}</small></h2>` + xs.map(i => `<button class="dvi" style="--gc:${GC[i.f.grupo]}" data-go="${i.f.fecha}"><div class="l"><b>${esc(i.f.muestra)}</b><small>${i.d.n} · ${i.l.h} h · ${esc(i.f.turno)}${i.f.analista ? " · " + esc(i.f.analista) : ""}</small></div><div class="v"><strong>${fmtV(i.l)}</strong><small>Esp ≤ ${i.d.espV}${i.x && isFinite(i.x) ? " · +" + Math.round((i.x - 1) * 100) + " %" : ""}</small></div></button>`).join("");
+      }
+      return h;
+    }
+    function wireDesvios() { document.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { S.dia = b.dataset.go; F.estado = "desvio"; ir("dia") }) }
+
+    // ================= Avisos y ajustes =================
+    const PASOS = ["muestras", 24, 48, 72];
+    function siguientePaso() {
+      const f = fmtD(DEMO ? DEMO.fecha : fechasLive()[0]), p = DEMO ? DEMO.paso + 1 : 0;
+      if (p >= PASOS.length) return "fin de la repetición (ya está todo lo que tiene el Excel)";
+      return p === 0 ? `aparecen las muestras tomadas el ${f}` : `se cargan las lecturas de ${PASOS[p]} h de las muestras del ${f}`;
+    }
+    // ---------- agenda de lecturas ----------
+    // Cada fila del Excel (muestra) define cuándo toca cada lectura: 24 h = día siguiente, 48 h = +2 días, 72 h = +3…
+    // Se agrupa por día de lectura y se compara con lo que ya está cargado en el Excel.
+    function agenda() {
+      const hoy = hoyISO(), it = {};
+      for (const f of S.live) {
+        const noAnalizada = f.nLect === 0 && diasEntre(f.fecha, hoy) >= 2;   // fila creada pero nunca se cargó nada
+        const dup = S.live.some(o => o !== f && o.fecha === f.fecha && o.muestra === f.muestra);
+        for (const h of [...new Set(f.vis.flatMap(d => d.lect.map(l => l.h)))]) {
+          const due = addDays(f.fecha, h / 24), k = due + "|" + h + "|" + f.fecha;
+          const x = it[k] = it[k] || { due, h, fecha: f.fecha, total: 0, listo: 0, noAn: 0, faltan: [] };
+          if (noAnalizada) { x.noAn++; continue }
+          x.total++;
+          // lista si está esa lectura o una posterior (el recuento final reemplaza a las intermedias)
+          const falta = f.vis.filter(d => d.lect.some(y => y.h === h) && !d.lect.some(y => y.h >= h && y.v != null));
+          if (!falta.length) x.listo++;
+          else x.faltan.push(corto(f.muestra) + (dup ? " " + f.turno.charAt(0) + "." : "") + (falta.length < f.vis.length ? " (" + falta.map(d => d.n.replace(" °C", "")).join(", ") + ")" : ""));
+        }
+      }
+      return Object.values(it).filter(x => x.total).sort((a, b) => a.due.localeCompare(b.due) || a.h - b.h);
+    }
+    // ¿Hoy es un día en que normalmente se toman muestras y todavía no hay filas?
+    function tomaHoy() {
+      const hoy = hoyISO(), n = S.live.filter(f => f.fecha === hoy).length;
+      if (n) return { ok: true, n };
+      const dias = new Set(fechasLive().map(d => new Date(d + "T12:00:00Z").getUTCDay()));
+      return dias.has(new Date(hoy + "T12:00:00Z").getUTCDay()) ? { ok: false } : null;
+    }
+    function itemAg(x, hoy) {
+      const lab = x.due === hoy ? "Hoy" : x.due === addDays(hoy, 1) ? "Mañana" : x.due === addDays(hoy, -1) ? "Ayer" : dsem(x.due);
+      const listo = x.listo === x.total, futuro = x.due > hoy;
+      const st = listo ? `<span class="ag-s ok">${IC.ok}${x.listo}/${x.total}</span>` : futuro ? `<span class="ag-s neu">${x.total} pts</span>` : `<span class="ag-s warn">${IC.clock}${x.listo}/${x.total}</span>`;
+      const sub = listo ? "Subidas al Excel" : futuro ? `${x.total} punto${x.total > 1 ? "s" : ""} por leer` : "Faltan: " + x.faltan.slice(0, 4).join(", ") + (x.faltan.length > 4 ? "…" : "");
+      return `<div class="ag${x.due === hoy ? " hoy" : ""}"><div class="ag-d"><b>${lab}</b><span>${fmtD(x.due)}</span></div><div class="ag-t">Lectura ${x.h} h · muestras del ${fmtD(x.fecha)}<small>${esc(sub)}</small></div>${st}</div>`;
+    }
+    function vAgenda() {
+      const hoy = hoyISO(), ag = agenda(), toma = tomaHoy();
+      const atr = ag.filter(x => x.due < hoy && x.listo < x.total && diasEntre(x.due, hoy) <= 10);
+      const deHoy = ag.filter(x => x.due === hoy), prox = ag.filter(x => x.due > hoy);
+      const hechas = ag.filter(x => x.due < hoy && x.listo === x.total).slice(-3).reverse();
+      const ultima = fechasLive()[0];
+      let h = "";
+      if (atr.length) h += `<div class="agsec">Atrasadas</div>` + atr.map(x => itemAg(x, hoy)).join("");
+      h += `<div class="agsec">Hoy · ${dsem(hoy)} ${fmtD(hoy)}</div>`;
+      if (toma) h += `<div class="ag hoy"><div class="ag-d"><b>Hoy</b><span>${fmtD(hoy)}</span></div><div class="ag-t">Toma de muestras<small>${toma.ok ? toma.n + " filas registradas en TA DIARIO" : "Aún no hay filas de hoy en el Excel"}</small></div>${toma.ok ? `<span class="ag-s ok">${IC.ok}${toma.n}</span>` : `<span class="ag-s neu">pendiente</span>`}</div>`;
+      h += deHoy.length ? deHoy.map(x => itemAg(x, hoy)).join("") : `<div class="ag-vacio">Hoy no toca ninguna lectura${ultima ? ` (última muestra registrada: ${dsem(ultima)} ${fmtD(ultima)})` : ""}.</div>`;
+      if (prox.length) h += `<div class="agsec">Próximas</div>` + prox.map(x => itemAg(x, hoy)).join("");
+      if (hechas.length) h += `<div class="agsec">Últimas completadas</div>` + hechas.map(x => itemAg(x, hoy)).join("");
+      return h;
+    }
+    // Recordatorio diario: a la hora elegida avisa lo que toca revisar hoy y lo atrasado (una vez por día)
+    function revisarRecordatorio() {
+      if (!PREF.recordar || !S.live.length || DEMO || S.src !== "live") return;
+      const now = new Date(), hoy = hoyISO(), [hh, mm] = String(PREF.horaRec || "09:00").split(":").map(Number);
+      if (now.getHours() * 60 + now.getMinutes() < hh * 60 + mm || store.get(LS.rec, "") === hoy) return;
+      store.set(LS.rec, hoy);
+      const pend = agenda().filter(x => x.due <= hoy && x.listo < x.total && diasEntre(x.due, hoy) <= 3), toma = tomaHoy(), partes = [];
+      if (toma && !toma.ok) partes.push("muestras de hoy aún no registradas");
+      for (const x of pend) partes.push(`${x.h} h del ${fmtD(x.fecha)}: faltan ${x.total - x.listo}`);
+      if (!partes.length) return;
+      registrar([{ tipo: "recordatorio", fecha: hoy, id: "rec-" + hoy, ts: Date.now(), t: `Toca revisar micro · ${dsem(hoy)} ${fmtD(hoy)}`, b: partes.join(" · ") }]);
+    }
+
+    function vAvisos() {
+      const soporta = "Notification" in window, perm = soporta ? Notification.permission : "no";
+      const estado = !soporta ? "Este navegador no permite notificaciones. En iPhone, primero agrega la app a la pantalla de inicio."
+        : perm === "granted" ? "Notificaciones activadas en este dispositivo."
+          : perm === "denied" ? "Las notificaciones están bloqueadas para esta página. Habilítalas en los ajustes del navegador."
+            : "Actívalas para recibir los avisos aunque estés en otra app.";
+      const tg = (k, t, s) => `<label class="tg"><span>${t}<small>${s}</small></span><input type="checkbox" data-p="${k}" ${PREF[k] ? "checked" : ""}></label>`;
+      const log = store.get(LS.avisos, []);
+      const icTipo = { muestra: IC.flask, lectura: IC.clock, desvio: IC.alert, recordatorio: IC.cal };
+      return `<h2>Agenda de lecturas<small>según la fecha de cada muestra</small></h2>
+      <section class="panel">${vAgenda()}</section>
+      <h2>Historial<small>${log.length} avisos</small></h2>
+      <section class="panel">${log.length ? log.slice(0, 30).map(e => `<div class="ev ${e.tipo}"><span class="ic">${icTipo[e.tipo] || IC.bell}</span><div><b>${esc(e.t)}</b><p>${esc(e.b)}</p><time>${fmtAt(e.ts)}</time></div></div>`).join("") : `<div class="empty">Aún no hay avisos. Aparecerán cuando Automate cargue muestras o lecturas nuevas.</div>`}</section>
+      <h2>Ajustes</h2>
+      <section class="panel"><h3>Notificaciones</h3><p>${estado}</p>
+        <div class="btns">${soporta && perm !== "granted" && perm !== "denied" ? `<button class="btn red" id="perm">Activar notificaciones</button>` : ""}<button class="btn ghost" id="prueba">Probar aviso</button></div>
+        <div style="margin-top:10px">${tg("notif", "Avisos activos", "Interruptor general")}${tg("recordar", "Recordatorio diario", "Qué lecturas toca revisar hoy y cuáles faltan subir")}${tg("muestras", "Muestra tomada", "Cuando aparece una muestra nueva en TA DIARIO")}${tg("lecturas", "Lectura por intervalo", "Cuando se cargan las lecturas de 24 h, 48 h, 72 h…")}${tg("soloDesvios", "Solo desvíos", "Silencia todo menos desvíos y el recordatorio")}</div>
+        <label class="hrow"><span>Hora del recordatorio<small>Se avisa una vez al día</small></span><input type="time" id="horaRec" value="${esc(PREF.horaRec)}"></label>
+      </section>
+      <section class="panel"><h3>Apariencia</h3>
+        <div class="seg" role="group" aria-label="Tema" style="margin-top:6px">${[["auto", "Automático"], ["light", "Claro"], ["dark", "Oscuro"]].map(([v, t]) => `<button data-tema="${v}" aria-pressed="${PREF.tema === v}">${t}</button>`).join("")}</div></section>
+      <section class="panel"><h3>Repetir el último día del Excel</h3><p>Vuelve a cargar, paso a paso y con sus valores reales, el último día de TA DIARIO para ver qué avisos llegarían. Siguiente paso: <b>${siguientePaso()}</b>.</p>
+        <div class="btns"><button class="btn" id="sim" ${DEMO && DEMO.paso >= PASOS.length - 1 ? "disabled" : ""}>${DEMO ? "Siguiente paso" : "Empezar repetición"}</button>${DEMO ? `<button class="btn ghost" id="simx">Terminar</button>` : ""}</div></section>`;
+    }
+    function wireAvisos() {
+      const p = document.getElementById("perm"); if (p) p.onclick = async () => { await Notification.requestPermission(); render() };
+      document.getElementById("prueba").onclick = () => { const e = { tipo: "lectura", id: "prueba-" + Date.now(), t: "Aviso de prueba · Micro TA", b: "Así llegarán las lecturas cargadas y los desvíos." }; toast(e); avisarSO(e) };
+      document.querySelectorAll("[data-p]").forEach(c => c.onchange = () => { PREF[c.dataset.p] = c.checked; store.set(LS.pref, PREF) });
+      document.querySelectorAll("[data-tema]").forEach(b => b.onclick = () => { PREF.tema = b.dataset.tema; store.set(LS.pref, PREF); aplicarTema(); render() });
+      document.getElementById("horaRec").onchange = e => { PREF.horaRec = e.target.value || "09:00"; store.set(LS.pref, PREF); store.set(LS.rec, ""); revisarRecordatorio() };
+      document.getElementById("sim").onclick = simular;
+      const x = document.getElementById("simx"); if (x) x.onclick = salirDemo;
+      store.set(LS.leido, Date.now()); badge();
+    }
+
+    // ---------- repetición con datos reales (no inventa valores) ----------
+    function columnasHasta(h) { return DET.flatMap(d => d.lect.filter(([x]) => x > h).flatMap(([, cols]) => cols)) }
+    function vistaParcial(raws, fecha, paso) {
+      if (paso < 0) return raws.filter(r => isoFecha(r[COL.fecha]) !== fecha);
+      const ocultar = columnasHasta(paso === 0 ? 0 : PASOS[paso]);
+      return raws.map(r => { if (isoFecha(r[COL.fecha]) !== fecha) return r; const c = Object.assign({}, r); ocultar.forEach(k => { if (k in c) c[k] = "" }); return c });
+    }
+    function simular() {
+      if (!DEMO) {
+        const raws = S.live.map(f => f.raw), fecha = fechasLive()[0];
+        DEMO = { fecha, paso: -1, raws, vistosAntes: store.get(LS.vistos, null) };
+        store.set(LS.vistos, firma(parseFilas({ filas: vistaParcial(raws, fecha, -1) })));
+      }
+      DEMO.paso = Math.min(DEMO.paso + 1, PASOS.length - 1);
+      aplicar({ at: new Date().toISOString(), filas: vistaParcial(DEMO.raws, DEMO.fecha, DEMO.paso) }, "demo");
+      S.dia = DEMO.fecha; render();
+    }
+    function salirDemo() {
+      if (DEMO) store.set(LS.vistos, DEMO.vistosAntes || firma(parseFilas({ filas: DEMO.raws })));
+      DEMO = null; S.live = []; S.dia = null; unir(); cargar();
+    }
+
+    // ---------- navegación ----------
+    const VISTAS = [["dia", "Día", IC.day], ["calendario", "Calendario", IC.cal], ["tendencias", "Tendencias", IC.trend], ["desvios", "Desvíos", IC.alert], ["avisos", "Avisos", IC.bell]];
+    function tabsRender() {
+      const nDv = S.live.filter(f => f.fecha === fechasLive()[0] && f.desvio).length, nAv = noLeidos();
+      document.getElementById("tabs").innerHTML = VISTAS.map(([k, t, ic]) => {
+        const c = k === "avisos" ? nAv : k === "desvios" ? nDv : 0;
+        return `<button data-v="${k}" ${S.vista === k ? 'aria-current="page"' : ""}>${ic}${t}${c ? `<span class="cnt">${c > 99 ? "99+" : c}</span>` : ""}</button>`;
+      }).join("");
+      document.querySelectorAll("[data-v]").forEach(b => b.onclick = () => ir(b.dataset.v));
+    }
+    function ir(v) { if (location.hash.slice(1) !== v) location.hash = v; else render() }
+    function render() {
+      const h = location.hash.slice(1);
+      S.vista = VISTAS.some(v => v[0] === h) ? h : "dia";
+      const app = document.getElementById("app");
+      if (S.vista === "calendario") { app.innerHTML = vCal(); wireCal() }
+      else if (S.vista === "tendencias") { app.innerHTML = vTend(); wireTend() }
+      else if (S.vista === "desvios") { app.innerHTML = vDesvios(); wireDesvios() }
+      else if (S.vista === "avisos") { app.innerHTML = vAvisos(); wireAvisos() }
+      else { app.innerHTML = vDia(); wireDia() }
+      tabsRender(); liveRender();
+    }
+    window.addEventListener("hashchange", () => { render(); window.scrollTo(0, 0) });
+    let _rz; window.addEventListener("resize", () => { clearTimeout(_rz); _rz = setTimeout(() => { if (S.vista === "tendencias") dibujarTend() }, 150) });
+    document.getElementById("bell").onclick = () => ir("avisos");
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") cargar() });
+    setInterval(() => { if (document.visibilityState === "visible") cargar() }, POLL_MS);
+    setInterval(() => { liveRender(); revisarRecordatorio() }, 30000);
+    if (navigator.serviceWorker && navigator.serviceWorker.addEventListener) navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.vista) ir(e.data.vista) });
+
+    render(); badge(); cargar().then(cargarHist);
+    if ("serviceWorker" in navigator && location.protocol === "https:") window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => { }));
+  </script>
+</body>
+
+</html>
